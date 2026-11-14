@@ -29,11 +29,13 @@
   <!-- App Main Wrapper -->
   <div id="app">
 
-    <!-- Top Header -->
+    <!-- ====================================================================
+         ВЕРХНЯЯ ПАНЕЛЬ (HEADER)
+         ==================================================================== -->
     <header class="app-header">
       <div class="brand">
         <div class="brand-logo" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
           </svg>
         </div>
@@ -42,8 +44,19 @@
           <span class="brand-subtitle">Телеметрия & фокус</span>
         </div>
       </div>
+
+      <!-- Быстрая плашка роста профиля в шапке -->
+      <div class="header-center">
+        <button id="btnHeaderHeight" class="header-height-pill" onclick="window.PulseFlow.openModal('modalSetHeight')" aria-label="Указать или изменить рост" title="Ваш рост">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 10H3"/><path d="M21 6H3"/><path d="M21 14H3"/><path d="M21 18H3"/>
+          </svg>
+          <span id="headerHeightText">Указать рост ✏️</span>
+        </button>
+      </div>
+
       <div class="header-actions">
-        <!-- PWA Install Button (Revealed dynamically via BeforeInstallPrompt / Web Install API) -->
+        <!-- PWA Install Button (Показывается при BeforeInstallPrompt / Web Install API) -->
         <button id="btnInstallApp" class="icon-btn" aria-label="Установить приложение" title="Установить PulseFlow" style="display:none;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -51,20 +64,20 @@
             <line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
         </button>
-        <!-- Notification Permission Toggle -->
+        <!-- Переключатель уведомлений -->
         <button id="btnNotifyToggle" class="icon-btn" aria-label="Включить напоминания" aria-pressed="false" title="Напоминания">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
         </button>
-        <!-- Light / Dark Theme Switcher -->
-        <button id="btnThemeToggle" class="icon-btn" aria-label="Сменить тему оформления" aria-pressed="false" title="Тема">
+        <!-- Переключатель темы Dark / Light -->
+        <button id="btnThemeToggle" class="icon-btn" aria-label="Сменить тему оформления" aria-pressed="false" title="Тема оформления">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
           </svg>
         </button>
-        <!-- Settings & Backup Modal -->
+        <!-- Настройки и бэкап -->
         <button class="icon-btn" onclick="window.PulseFlow.openModal('modalSettings')" aria-label="Настройки и резервное копирование" title="Настройки">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3"/>
@@ -75,20 +88,20 @@
     </header>
 
     <!-- ====================================================================
-         ТАБ 1: ГЛАВНАЯ / ВОДНЫЙ БАЛАНС И ВЕС
+         ТАБ 1: ЗДОРОВЬЕ И ТЕЛЕМЕТРИЯ (ВОДНЫЙ БАЛАНС, ВЕС И ИМТ)
          ==================================================================== -->
     <section id="tab-home" class="tab-content active" role="tabpanel" aria-labelledby="navTabHome" tabindex="0">
       
       <!-- Карточка 1: Водный баланс -->
-      <div class="card">
+      <div class="card card-telemetry">
         <div class="card-header">
           <div>
             <h2 class="card-title">Водный баланс</h2>
             <div class="card-subtitle">Суточная гидратация и интервалы</div>
           </div>
-          <button class="icon-btn" style="width:32px; height:32px;" 
+          <button class="icon-btn icon-btn-sm" 
                   onclick="window.PulseFlow.openModal('modalWaterSettings')" aria-label="Настройки цели воды" title="Параметры воды">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="3"/>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
             </svg>
@@ -96,15 +109,22 @@
         </div>
 
         <div class="water-container">
-          <!-- Круговой SVG индикатор с tabular числами -->
+          <!-- Круговой SVG индикатор с градиентом и tabular числами -->
           <div class="water-dial-wrapper">
             <svg class="water-dial-svg" viewBox="0 0 200 200" role="img" aria-label="Индикатор выполнения нормы воды">
-              <circle class="water-dial-bg" cx="100" cy="100" r="90" />
-              <circle id="waterCircleProgress" class="water-dial-progress" cx="100" cy="100" r="90" />
+              <defs>
+                <linearGradient id="waterDialGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#0284c7"/>
+                  <stop offset="50%" stop-color="#0ea5e9"/>
+                  <stop offset="100%" stop-color="#38bdf8"/>
+                </linearGradient>
+              </defs>
+              <circle class="water-dial-bg" cx="100" cy="100" r="88" />
+              <circle id="waterCircleProgress" class="water-dial-progress" cx="100" cy="100" r="88" stroke="url(#waterDialGradient)" />
             </svg>
             <div class="water-dial-center">
               <span id="waterCurrentVal" class="water-value">0 мл</span>
-              <span id="waterGoalVal" class="water-goal-label">из 2500 мл</span>
+              <span id="waterGoalVal" class="water-goal-label">из 2000 мл</span>
               <span id="waterPercentVal" class="water-percent">0% выполнено</span>
             </div>
           </div>
@@ -113,25 +133,25 @@
           <div class="water-actions-grid">
             <button class="btn-water" onclick="window.PulseFlow.addWater(250)" aria-label="Добавить 250 миллилитров воды">
               <span class="icon" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
               </span>
               <span>+250 мл</span>
             </button>
             <button class="btn-water" onclick="window.PulseFlow.addWater(500)" aria-label="Добавить 500 миллилитров воды">
               <span class="icon" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2h10v3H7z"/><path d="M8 5v2a4 4 0 0 1-1 3v10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V10a4 4 0 0 1-1-3V5"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2h10v3H7z"/><path d="M8 5v2a4 4 0 0 1-1 3v10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V10a4 4 0 0 1-1-3V5"/></svg>
               </span>
               <span>+500 мл</span>
             </button>
             <button class="btn-water" onclick="window.PulseFlow.openModal('modalCustomWater')" aria-label="Ввести произвольный объем воды">
               <span class="icon" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               </span>
               <span>Свой объём</span>
             </button>
-            <button class="btn-water" onclick="window.PulseFlow.addWater(-250)" aria-label="Отменить 250 миллилитров воды">
+            <button class="btn-water btn-water-undo" onclick="window.PulseFlow.addWater(-250)" aria-label="Отменить 250 миллилитров воды">
               <span class="icon" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
               </span>
               <span>-250 мл</span>
             </button>
@@ -151,39 +171,82 @@
       </div>
 
       <!-- Карточка 2: Трекер веса и ИМТ -->
-      <div class="card">
+      <div class="card card-telemetry">
         <div class="card-header">
           <div>
             <h2 class="card-title">Контроль веса & ИМТ</h2>
-            <div class="card-subtitle" id="weightGoalDiffText">Осталось сбросить: -- кг</div>
+            <div class="card-subtitle" id="weightGoalDiffText">Укажите рост и стартовый вес</div>
           </div>
-          <button class="btn btn-sm btn-primary" onclick="window.PulseFlow.openModal('modalLogWeight')">+ Записать вес</button>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button type="button" class="target-chip" onclick="window.PulseFlow.openModal('modalTargetWeight')" title="Целевой вес">
+              <span>Цель:</span> <strong id="statTargetWeight">-- кг</strong> ✏️
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="window.PulseFlow.openModal('modalLogWeight')">+ Записать вес</button>
+          </div>
         </div>
 
-        <!-- 3 Метрики: Текущий, Цель, ИМТ -->
+        <!-- Приветственный онбординг баннер (показывается при отсутствии роста или веса) -->
+        <div id="weightOnboardingBanner" class="telemetry-welcome-banner">
+          <div class="welcome-banner-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/>
+              <line x1="16" y1="8" x2="2" y2="22"/>
+              <line x1="17.5" y1="15" x2="9" y2="15"/>
+            </svg>
+          </div>
+          <div class="welcome-banner-content">
+            <div class="welcome-banner-title">Начните персональный контроль</div>
+            <div class="welcome-banner-desc">Укажите свой рост и стартовый вес, чтобы активировать точный расчет ИМТ и персональную динамику.</div>
+            <div class="welcome-banner-actions">
+              <button id="btnBannerSetHeight" class="btn btn-sm btn-primary" onclick="window.PulseFlow.openModal('modalSetHeight')">Указать рост ✏️</button>
+              <button id="btnBannerLogWeight" class="btn btn-sm btn-secondary" onclick="window.PulseFlow.openModal('modalLogWeight')">Записать стартовый вес</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Ключевые Метрики: Текущий вес, Рост, ИМТ с индикатором шкалы -->
         <div class="weight-stats-grid">
+          <!-- 1: Текущий вес -->
           <div class="stat-box">
             <div class="stat-label">Текущий вес</div>
             <div id="statCurrentWeight" class="stat-value">-- кг</div>
-            <div class="stat-sub">Взвешивание</div>
+            <div id="statWeightSub" class="stat-sub">
+              <button type="button" class="stat-link-btn" onclick="window.PulseFlow.openModal('modalLogWeight')">Взвешивание ✏️</button>
+            </div>
           </div>
-          <div class="stat-box">
-            <div class="stat-label">Целевой вес</div>
-            <div id="statTargetWeight" class="stat-value">-- кг</div>
-            <button type="button" class="stat-link-btn" onclick="window.PulseFlow.openModal('modalTargetWeight')" aria-label="Изменить целевой вес">
-              Изменить цель
-            </button>
+
+          <!-- 2: Рост (кликабельный с модальным окном) -->
+          <div class="stat-box clickable-stat-box" onclick="window.PulseFlow.openModal('modalSetHeight')" role="button" tabindex="0" aria-label="Изменить рост">
+            <div class="stat-label">Рост</div>
+            <div id="statHeightValue" class="stat-value">-- см</div>
+            <div id="statHeightSub" class="stat-sub">
+              <span class="stat-link-btn">Изменить ✏️</span>
+            </div>
           </div>
+
+          <!-- 3: Индекс массы тела (ИМТ) -->
           <div class="stat-box">
             <div class="stat-label">Индекс массы</div>
-            <div id="statBmiValue" class="stat-value">--</div>
-            <div class="stat-sub"><span id="statBmiBadge" class="badge badge-success">Норма</span></div>
+            <div class="stat-value-row">
+              <div id="statBmiValue" class="stat-value">--</div>
+              <span id="statBmiBadge" class="badge badge-success">Норма</span>
+            </div>
+            <!-- Визуальный сегментный датчик шкалы ИМТ -->
+            <div class="bmi-gauge" aria-hidden="true" title="Шкала ИМТ: Дефицит (&lt;18.5), Норма (18.5-24.9), Избыток (25-29.9), Ожирение (&gt;=30)">
+              <div class="bmi-gauge-track">
+                <div class="bmi-gauge-seg seg-under" title="Дефицит &lt; 18.5"></div>
+                <div class="bmi-gauge-seg seg-normal" title="Норма 18.5 - 24.9"></div>
+                <div class="bmi-gauge-seg seg-over" title="Избыток 25 - 29.9"></div>
+                <div class="bmi-gauge-seg seg-obese" title="Ожирение &gt;= 30"></div>
+              </div>
+              <div id="bmiGaugePin" class="bmi-gauge-pin" style="left: 45%;"></div>
+            </div>
           </div>
         </div>
 
         <!-- Переключатель периодов и график Canvas -->
         <div class="chart-header">
-          <span style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Динамика измерений</span>
+          <span class="chart-title-label">Динамика веса</span>
           <div id="weightFilterPills" class="filter-pills" role="group" aria-label="Период графика веса">
             <button class="pill-btn" data-period="7d" onclick="window.PulseFlow.setWeightFilter('7d')">7 дней</button>
             <button class="pill-btn active" data-period="30d" onclick="window.PulseFlow.setWeightFilter('30d')">30 дней</button>
@@ -194,12 +257,23 @@
         <div class="chart-wrapper">
           <canvas id="weightChart" role="img" aria-label="График динамики веса за выбранный период"></canvas>
           <div id="chartTooltip" class="chart-tooltip"></div>
+          <!-- Элегантный пустой стейт, если записей нет -->
+          <div id="weightChartEmpty" class="chart-empty-state" style="display:none;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon" aria-hidden="true">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            <div class="empty-title">Нет записей о весе за выбранный период</div>
+            <div class="empty-desc">Зафиксируйте первое взвешивание, чтобы сформировать график динамики.</div>
+            <button class="btn btn-sm btn-secondary" onclick="window.PulseFlow.openModal('modalLogWeight')">+ Добавить запись</button>
+          </div>
         </div>
 
         <!-- Замеры тела -->
-        <div style="margin-top:16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:0.9rem; font-weight:600;">Замеры объёмов тела</span>
+        <div class="measurements-section">
+          <div class="measurements-header">
+            <span class="section-title-sm">Замеры объёмов тела</span>
             <button class="btn btn-sm btn-secondary" onclick="window.PulseFlow.openModal('modalAddMeasurement')">+ Добавить замер</button>
           </div>
           <div id="measurementsContainer" class="measurements-grid">
@@ -443,7 +517,7 @@
        ФИКСИРОВАННЫЙ НИЖНИЙ TAB BAR (MOBILE-FIRST THUMB-FRIENDLY)
        ==================================================================== -->
   <nav class="bottom-nav" aria-label="Основная навигация">
-    <div role="tablist" class="bottom-nav-inner" style="display:contents;">
+    <div role="tablist" class="bottom-nav-inner">
       <button class="nav-item active" data-tab="tab-home" id="navTabHome" role="tab" aria-selected="true" aria-controls="tab-home">
         <div class="nav-indicator"></div>
         <span class="nav-icon" aria-hidden="true">
@@ -451,7 +525,7 @@
             <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
           </svg>
         </span>
-        <span>Баланс</span>
+        <span class="nav-label">Баланс</span>
       </button>
       <button class="nav-item" data-tab="tab-workouts" id="navTabWorkouts" role="tab" aria-selected="false" aria-controls="tab-workouts">
         <div class="nav-indicator"></div>
@@ -460,7 +534,7 @@
             <path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>
           </svg>
         </span>
-        <span>Тренировки</span>
+        <span class="nav-label">Тренировки</span>
       </button>
       <button class="nav-item" data-tab="tab-diary" id="navTabDiary" role="tab" aria-selected="false" aria-controls="tab-diary">
         <div class="nav-indicator"></div>
@@ -469,7 +543,7 @@
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
           </svg>
         </span>
-        <span>Ежедневник</span>
+        <span class="nav-label">Ежедневник</span>
       </button>
       <button class="nav-item" data-tab="tab-randomizer" id="navTabRandomizer" role="tab" aria-selected="false" aria-controls="tab-randomizer">
         <div class="nav-indicator"></div>
@@ -478,7 +552,7 @@
             <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/>
           </svg>
         </span>
-        <span>Досуг</span>
+        <span class="nav-label">Досуг</span>
       </button>
     </div>
   </nav>
@@ -498,7 +572,7 @@
       </div>
       <div class="form-group">
         <label for="inputWaterGoal" class="form-label">Дневная цель (мл):</label>
-        <input type="number" id="inputWaterGoal" class="form-control" value="2500" step="100">
+        <input type="number" id="inputWaterGoal" class="form-control" value="2000" step="100">
       </div>
       <div class="form-group">
         <label for="selectWaterInterval" class="form-label">Интервал напоминаний (минуты):</label>
@@ -564,7 +638,7 @@
       </div>
       <div class="form-group">
         <label for="inputWeightValue" class="form-label">Вес (кг):</label>
-        <input type="number" id="inputWeightValue" class="form-control" placeholder="74.5" step="0.1">
+        <input type="number" id="inputWeightValue" class="form-control" placeholder="Например: 74.5" step="0.1">
       </div>
       <button class="btn btn-primary btn-block" onclick="
         const d = document.getElementById('inputWeightDate').value;
@@ -664,7 +738,7 @@
     </div>
   </div>
 
-  <!-- Модалка 7: Добавить упражнение в активную тренировку (Замена window.prompt) -->
+  <!-- Модалка 7: Добавить упражнение в активную тренировку -->
   <div id="modalAddExercise" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitleAddExercise" hidden>
     <div class="modal-content">
       <div class="modal-header">
@@ -777,6 +851,32 @@
       <div style="border-top:1px solid var(--border-subtle); padding-top:14px; font-size:0.75rem; color:var(--text-muted); text-align:center;">
         PulseFlow PWA • Автономный режим активен
       </div>
+    </div>
+  </div>
+
+  <!-- Модалка 11: Указать / изменить рост профиля -->
+  <div id="modalSetHeight" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitleSetHeight" hidden>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitleSetHeight" class="modal-title">Ваш рост</h2>
+        <button class="icon-btn" onclick="window.PulseFlow.closeAllModals()" aria-label="Закрыть окно">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="form-group">
+        <label for="inputProfileHeight" class="form-label">Рост в сантиметрах (см):</label>
+        <input type="number" id="inputProfileHeight" class="form-control" placeholder="Например: 178" min="100" max="250" step="1"
+               onkeydown="if(event.key==='Enter'){ const v=this.value; if(window.PulseFlow&&window.PulseFlow.setProfileHeight) window.PulseFlow.setProfileHeight(v); }">
+      </div>
+      <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:14px;">
+        Рост используется для расчета индекса массы тела (ИМТ) по стандартам ВОЗ и расчета оптимальной суточной гидратации.
+      </p>
+      <button class="btn btn-primary btn-block" onclick="
+        const val = document.getElementById('inputProfileHeight').value;
+        if (window.PulseFlow && window.PulseFlow.setProfileHeight) {
+          window.PulseFlow.setProfileHeight(val);
+        }
+      ">Сохранить рост</button>
     </div>
   </div>
 

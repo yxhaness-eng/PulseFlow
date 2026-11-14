@@ -254,7 +254,7 @@
      3. STATE & STORAGE MANAGEMENT
      ========================================================================== */
 
-  const STORAGE_KEY = 'pulseflow_app_state_v1';
+  const STORAGE_KEY = 'pulseflow_clean_v2';
 
   function getTodayString() {
     const now = new Date();
@@ -270,101 +270,51 @@
       theme: 'dark',
       activeTab: 'tab-home',
       profile: {
-        height: 178,
-        name: 'Пользователь'
+        height: null,
+        name: ''
       },
       water: {
         date: today,
-        current: 1250,
-        goal: 2500,
+        current: 0,
+        goal: 2000,
         reminderInterval: 90,
         reminderStart: '08:30',
         reminderEnd: '22:00',
         remindersEnabled: true,
-        lastLogTimestamp: Date.now()
+        lastLogTimestamp: null
       },
       weight: {
-        current: 74.8,
-        target: 70.0,
+        current: null,
+        target: null,
         filterPeriod: '30d',
-        history: [
-          { date: '2026-10-15', weight: 77.2 },
-          { date: '2026-10-22', weight: 76.5 },
-          { date: '2026-10-29', weight: 75.9 },
-          { date: '2026-11-05', weight: 75.3 },
-          { date: '2026-11-10', weight: 75.0 },
-          { date: today, weight: 74.8 }
-        ]
+        history: []
       },
-      measurements: [
-        {
-          date: today,
-          chest: 104,
-          waist: 82,
-          hips: 98,
-          biceps: 37.5,
-          neck: 39
-        }
-      ],
+      measurements: [],
       workouts: {
         templates: INITIAL_WORKOUT_TEMPLATES,
         activeWorkout: null,
-        history: [
-          {
-            id: 'wh-1',
-            date: '2026-11-12',
-            title: 'Фулбоди: Базовый',
-            durationMinutes: 48,
-            totalVolumeKg: 3420,
-            exercises: [
-              { name: 'Приседания со штангой', bestSet: '70 кг × 8' },
-              { name: 'Жим лёжа на скамье', bestSet: '65 кг × 8' },
-              { name: 'Тяга штанги в наклоне', bestSet: '55 кг × 10' }
-            ]
-          }
-        ]
+        history: []
       },
       diary: {
         selectedDate: today,
         habitsConfig: [
-          { id: 'water', label: 'Водный баланс 2.5л' },
+          { id: 'water', label: 'Водный баланс 2.0л' },
           { id: 'workout', label: 'Силовая сессия' },
           { id: 'reading', label: 'Чтение 20 минут' },
           { id: 'walk', label: '10 000 шагов' },
           { id: 'sleep', label: 'Режим сна 8ч' }
         ],
-        pages: {
-          [today]: {
-            mood: '🔥',
-            pattern: 'grid',
-            accentColor: '#0284c7',
-            fontFamily: 'font-sans',
-            tags: ['фокус', 'тренировка'],
-            habits: {
-              water: true,
-              workout: true,
-              reading: false,
-              walk: false,
-              sleep: true
-            },
-            todos: [
-              { id: 'td-1', text: 'Утренняя разминка и вода', done: true },
-              { id: 'td-2', text: 'Силовая тренировка: базовый комплекс', done: true },
-              { id: 'td-3', text: 'Чтение профильной литературы 20 мин', done: false }
-            ],
-            notes: 'Рабочий пульс ровный. На приседаниях самочувствие стабильное, в следующем цикле можно запланировать шаг прогрессии.'
-          }
-        }
+        pages: {}
       },
       media: {
         catalog: INITIAL_MEDIA_CATALOG,
         selectedCategory: 'all',
         activeFilterTags: [],
-        watchlist: ['m1', 's1', 'a1'],
-        watchedHistory: ['m4', 'm5'],
+        watchlist: [],
+        watchedHistory: [],
         userLikes: {
-          genres: { 'Фантастика': 4, 'Киберпанк': 3, 'Детектив': 2 },
-          moods: { 'Динамичный сюжет': 3, 'Глубокий смысл': 3 }
+          genres: {},
+          moods: {}
         }
       }
     };
@@ -373,6 +323,9 @@
   // Загрузка состояния с защитой от повреждений и старых схем
   let state = (() => {
     try {
+      // Clear legacy storage key if present to guarantee clean migration
+      try { localStorage.removeItem('pulseflow_app_state_v1'); } catch (_) {}
+
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -728,36 +681,86 @@
   }
 
   function calculateWeightMetrics() {
-    const current = Number(state.weight.current) || 75;
-    const target = Number(state.weight.target) || 70;
-    const heightM = (Number(state.profile.height) || 178) / 100;
+    const rawHeight = state.profile && state.profile.height != null ? Number(state.profile.height) : null;
+    const rawWeight = state.weight && state.weight.current != null ? Number(state.weight.current) : null;
+    const rawTarget = state.weight && state.weight.target != null ? Number(state.weight.target) : null;
 
-    const bmi = (current / (heightM * heightM)).toFixed(1);
-    let bmiCategory = 'Норма';
+    const heightMissing = rawHeight === null || isNaN(rawHeight) || rawHeight <= 0;
+    const weightMissing = rawWeight === null || isNaN(rawWeight) || rawWeight <= 0;
+
+    if (heightMissing || weightMissing) {
+      return {
+        heightMissing,
+        weightMissing,
+        bmi: null,
+        score: null,
+        category: null,
+        bmiCategory: heightMissing && weightMissing ? 'Укажите рост и вес' : (heightMissing ? 'Укажите рост' : 'Укажите вес'),
+        bmiBadgeClass: 'badge-secondary',
+        diffText: 'Укажите рост и вес'
+      };
+    }
+
+    const heightM = rawHeight / 100;
+    const bmiRaw = rawWeight / (heightM * heightM);
+    const score = Number(bmiRaw.toFixed(1));
+    const bmi = bmiRaw.toFixed(1);
+
+    let category = 'Норма';
     let bmiBadgeClass = 'badge-success';
 
-    if (bmi < 18.5) {
-      bmiCategory = 'Дефицит веса';
+    if (score < 18.5) {
+      category = 'Дефицит';
       bmiBadgeClass = 'badge-primary';
-    } else if (bmi >= 25 && bmi < 30) {
-      bmiCategory = 'Избыток веса';
+    } else if (score >= 25 && score < 30) {
+      category = 'Избыток';
       bmiBadgeClass = 'badge-warning';
-    } else if (bmi >= 30) {
-      bmiCategory = 'Ожирение';
+    } else if (score >= 30) {
+      category = 'Ожирение';
       bmiBadgeClass = 'badge-danger';
     }
 
-    const diff = (current - target).toFixed(1);
     let diffText = '';
-    if (diff > 0) {
-      diffText = `Осталось снизить: ${diff} кг`;
-    } else if (diff < 0) {
-      diffText = `Осталось набрать: ${Math.abs(diff)} кг`;
+    if (rawTarget !== null && !isNaN(rawTarget) && rawTarget > 0) {
+      const diff = (rawWeight - rawTarget).toFixed(1);
+      const diffNum = Number(diff);
+      if (diffNum > 0) {
+        diffText = `Осталось снизить: ${diff} кг`;
+      } else if (diffNum < 0) {
+        diffText = `Осталось набрать: ${Math.abs(diffNum).toFixed(1)} кг`;
+      } else {
+        diffText = 'Целевой вес достигнут';
+      }
     } else {
-      diffText = 'Целевой вес достигнут';
+      diffText = 'Установите целевой вес';
     }
 
-    return { bmi, bmiCategory, bmiBadgeClass, diffText };
+    return {
+      heightMissing: false,
+      weightMissing: false,
+      bmi,
+      score,
+      category,
+      bmiCategory: category,
+      bmiBadgeClass,
+      diffText
+    };
+  }
+
+  function setProfileHeight(height) {
+    if (height === null || height === undefined || height === '') {
+      state.profile.height = null;
+    } else {
+      const h = parseFloat(height);
+      state.profile.height = isNaN(h) || h <= 0 ? null : Math.round(h * 10) / 10;
+    }
+    saveState();
+    renderWeightSection();
+    closeAllModals();
+    if (state.profile.height != null) {
+      showToast(`Рост ${state.profile.height} см сохранен`);
+    }
+    return state.profile.height;
   }
 
   function renderWeightSection() {
@@ -765,18 +768,61 @@
 
     const curEl = document.getElementById('statCurrentWeight');
     const tarEl = document.getElementById('statTargetWeight');
+    const heightValEl = document.getElementById('statHeightValue');
     const bmiValEl = document.getElementById('statBmiValue');
     const bmiBadgeEl = document.getElementById('statBmiBadge');
     const diffEl = document.getElementById('weightGoalDiffText');
+    const headerHeightText = document.getElementById('headerHeightText');
+    const onboardingBanner = document.getElementById('weightOnboardingBanner');
+    const gaugePin = document.getElementById('bmiGaugePin');
 
-    if (curEl) curEl.textContent = `${state.weight.current} кг`;
-    if (tarEl) tarEl.textContent = `${state.weight.target} кг`;
-    if (bmiValEl) bmiValEl.textContent = metrics.bmi;
+    // Header height pill
+    if (headerHeightText) {
+      headerHeightText.textContent = state.profile.height != null 
+        ? `Рост: ${state.profile.height} см` 
+        : 'Указать рост ✏️';
+    }
+
+    // Weight and Target values
+    if (curEl) curEl.textContent = state.weight.current != null ? `${state.weight.current} кг` : '— кг';
+    if (tarEl) tarEl.textContent = state.weight.target != null ? `${state.weight.target} кг` : '— кг';
+
+    // Height stat value
+    if (heightValEl) {
+      heightValEl.textContent = state.profile.height != null ? `${state.profile.height} см` : '— см';
+    }
+
+    // BMI value and category badge
+    if (bmiValEl) {
+      bmiValEl.textContent = metrics.bmi != null ? metrics.bmi : '—';
+    }
     if (bmiBadgeEl) {
       bmiBadgeEl.className = `badge ${metrics.bmiBadgeClass}`;
       bmiBadgeEl.textContent = metrics.bmiCategory;
     }
-    if (diffEl) diffEl.textContent = metrics.diffText;
+
+    // Subtitle diff text
+    if (diffEl) {
+      diffEl.textContent = metrics.diffText;
+    }
+
+    // BMI Gauge Pin
+    if (gaugePin) {
+      if (metrics.score != null) {
+        const minBmi = 15;
+        const maxBmi = 35;
+        const pct = Math.max(0, Math.min(100, ((metrics.score - minBmi) / (maxBmi - minBmi)) * 100));
+        gaugePin.style.left = `${pct}%`;
+        gaugePin.style.display = 'block';
+      } else {
+        gaugePin.style.display = 'none';
+      }
+    }
+
+    // Onboarding empty banner
+    if (onboardingBanner) {
+      onboardingBanner.style.display = (metrics.heightMissing || metrics.weightMissing) ? 'flex' : 'none';
+    }
 
     renderWeightChart();
     renderMeasurements();
@@ -789,7 +835,15 @@
     if (chartRafId) cancelAnimationFrame(chartRafId);
     chartRafId = requestAnimationFrame(() => {
       const canvas = document.getElementById('weightChart');
+      const chartEmptyEl = document.getElementById('weightChartEmpty');
       if (!canvas) return;
+
+      const hasHistory = Array.isArray(state.weight.history) && state.weight.history.length > 0;
+
+      // Toggle DOM empty container if present
+      if (chartEmptyEl) {
+        chartEmptyEl.style.display = hasHistory ? 'none' : 'flex';
+      }
 
       const ctx = canvas.getContext('2d');
       const dpr = window.devicePixelRatio || 1;
@@ -803,6 +857,54 @@
 
       const w = rect.width;
       const h = rect.height;
+      const isLight = document.body.classList.contains('light-theme');
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Robust empty state on canvas if no history entries
+      if (!hasHistory) {
+        canvas._chartPoints = [];
+        canvas.setAttribute('aria-label', 'История измерений веса пуста. График пока не построен.');
+
+        // Subtle baseline
+        ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(240, 246, 252, 0.08)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+
+        const midY = Math.round(h * 0.52);
+        ctx.beginPath();
+        ctx.moveTo(32, midY);
+        ctx.lineTo(w - 20, midY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Plus icon / badge glyph
+        const circleY = midY - 26;
+        ctx.beginPath();
+        ctx.arc(w / 2, circleY, 16, 0, Math.PI * 2);
+        ctx.fillStyle = isLight ? 'rgba(2, 132, 199, 0.08)' : 'rgba(14, 165, 233, 0.12)';
+        ctx.fill();
+        ctx.strokeStyle = isLight ? 'rgba(2, 132, 199, 0.25)' : 'rgba(14, 165, 233, 0.3)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = isLight ? '#0284c7' : '#0ea5e9';
+        ctx.font = '600 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('+', w / 2, circleY);
+
+        // Elegant empty copy
+        ctx.font = '600 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.fillStyle = isLight ? '#334155' : '#e2e8f0';
+        ctx.fillText('История взвешиваний пуста', w / 2, midY + 16);
+
+        ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.fillStyle = isLight ? '#64748b' : '#8b949e';
+        ctx.fillText('Запишите первое взвешивание для построения графика', w / 2, midY + 34);
+
+        return;
+      }
 
       let data = [...state.weight.history].sort((a, b) => new Date(a.date) - new Date(b.date));
       const now = new Date();
@@ -816,10 +918,19 @@
       }
 
       if (data.length === 0) {
-        data = [{ date: getTodayString(), weight: state.weight.current }];
+        canvas._chartPoints = [];
+        canvas.setAttribute('aria-label', 'Нет записей за выбранный период.');
+        ctx.font = '600 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.fillStyle = isLight ? '#64748b' : '#8b949e';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Нет записей за выбранный период', w / 2, h / 2);
+        return;
       }
 
-      const weights = data.map(d => Number(d.weight) || 70);
+      const weights = data.map(d => Number(d.weight)).filter(w => !isNaN(w) && w > 0);
+      if (weights.length === 0) return;
+
       const minW = Math.floor(Math.min(...weights) - 1.0);
       const maxW = Math.ceil(Math.max(...weights) + 1.0);
 
@@ -830,14 +941,12 @@
       const chartW = w - padding.left - padding.right;
       const chartH = h - padding.top - padding.bottom;
 
-      ctx.clearRect(0, 0, w, h);
-
       // Сетка и деления
-      const isLight = document.body.classList.contains('light-theme');
       ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(240, 246, 252, 0.06)';
       ctx.fillStyle = isLight ? '#64748b' : '#8b949e';
       ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
       ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
 
       const gridLines = 4;
       for (let i = 0; i <= gridLines; i++) {
@@ -849,7 +958,7 @@
         ctx.lineTo(w - padding.right, y);
         ctx.stroke();
 
-        ctx.fillText(`${yVal.toFixed(0)}`, padding.left - 6, y + 3);
+        ctx.fillText(`${yVal.toFixed(0)}`, padding.left - 6, y);
       }
 
       const points = data.map((d, i) => {
@@ -905,10 +1014,11 @@
       // Подписи дат
       ctx.fillStyle = isLight ? '#64748b' : '#8b949e';
       ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
       if (points.length > 0) {
-        ctx.fillText(points[0].date.slice(5), points[0].x, h - 8);
+        ctx.fillText(points[0].date.slice(5), points[0].x, h - 6);
         if (points.length > 1) {
-          ctx.fillText(points[points.length - 1].date.slice(5), points[points.length - 1].x, h - 8);
+          ctx.fillText(points[points.length - 1].date.slice(5), points[points.length - 1].x, h - 6);
         }
       }
     });
@@ -957,6 +1067,16 @@
   function renderMeasurements() {
     const container = document.getElementById('measurementsContainer');
     if (!container) return;
+
+    if (!Array.isArray(state.measurements) || state.measurements.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state-banner" style="grid-column: 1 / -1; text-align:center; padding:18px 12px; border:1px dashed var(--border-subtle); border-radius:var(--radius-control); background:rgba(255,255,255,0.01);">
+          <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:10px;">Замеры объёмов тела пока не добавлены</div>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="window.PulseFlow.openModal('modalAddMeasurement')">+ Записать первый замер</button>
+        </div>
+      `;
+      return;
+    }
 
     const latest = state.measurements[state.measurements.length - 1] || {};
     const items = [
@@ -1157,8 +1277,14 @@
     }
 
     if (historySection) {
-      if (state.workouts.history.length === 0) {
-        historySection.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem;">Журнал пока пуст.</p>';
+      if (!Array.isArray(state.workouts.history) || state.workouts.history.length === 0) {
+        historySection.innerHTML = `
+          <div class="empty-history-state" style="text-align:center; padding:28px 16px; border:1px dashed var(--border-subtle); border-radius:var(--radius-card); background:rgba(255,255,255,0.01);">
+            <div style="font-weight:600; font-size:0.95rem; color:var(--text-primary); margin-bottom:4px;">Журнал тренировок пока пуст</div>
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:14px;">Завершите тренировку по программе или начните свободную сессию, чтобы зафиксировать результаты.</div>
+            <button type="button" class="btn btn-sm btn-primary" onclick="window.PulseFlow.startEmptyWorkout()">+ Начать тренировку</button>
+          </div>
+        `;
       } else {
         historySection.innerHTML = state.workouts.history.slice().reverse().map(h => `
           <div class="history-item">
@@ -1234,7 +1360,7 @@
         pattern: 'grid',
         accentColor: '#0284c7',
         fontFamily: 'font-sans',
-        tags: ['фокус'],
+        tags: [],
         habits: {},
         todos: [],
         notes: ''
@@ -1306,6 +1432,16 @@
       if (pbar) pbar.setAttribute('aria-valuenow', pct);
     }
     if (statsText) statsText.textContent = `${completed} из ${total} выполнено (${pct}%)`;
+
+    if (!page.todos || page.todos.length === 0) {
+      list.innerHTML = `
+        <div style="text-align:center; padding:18px 12px; color:var(--text-muted); font-size:0.85rem; border:1px dashed var(--border-subtle); border-radius:var(--radius-control);">
+          Список задач на этот день пуст. Добавьте задачу выше, чтобы отслеживать прогресс.
+        </div>
+      `;
+      updateAppBadge();
+      return;
+    }
 
     list.innerHTML = page.todos.map(t => `
       <div class="todo-item" role="listitem">
@@ -1625,7 +1761,7 @@
       const i = document.getElementById('selectWaterInterval');
       const s = document.getElementById('inputWaterStart');
       const e = document.getElementById('inputWaterEnd');
-      if (g) g.value = state.water.goal || 2500;
+      if (g) g.value = state.water.goal || 2000;
       if (i) i.value = state.water.reminderInterval || 90;
       if (s) s.value = state.water.reminderStart || '08:30';
       if (e) e.value = state.water.reminderEnd || '22:00';
@@ -1633,10 +1769,13 @@
       const d = document.getElementById('inputWeightDate');
       const w = document.getElementById('inputWeightValue');
       if (d) d.value = getTodayString();
-      if (w) w.value = state.weight.current || 75;
+      if (w) w.value = state.weight.current != null ? state.weight.current : '';
     } else if (modalId === 'modalTargetWeight') {
       const tw = document.getElementById('inputTargetWeightVal');
-      if (tw) tw.value = state.weight.target || 70;
+      if (tw) tw.value = state.weight.target != null ? state.weight.target : '';
+    } else if (modalId === 'modalSetHeight') {
+      const hInp = document.getElementById('inputProfileHeight') || document.getElementById('inputProfileHeightVal');
+      if (hInp) hInp.value = state.profile.height != null ? state.profile.height : '';
     } else if (modalId === 'modalAddExercise') {
       const exInp = document.getElementById('inputExerciseName');
       if (exInp) exInp.value = '';
@@ -1706,10 +1845,15 @@
      ========================================================================== */
 
   window.PulseFlow = {
+    // State inspection (read-only snapshot)
+    getState() {
+      return JSON.parse(JSON.stringify(state));
+    },
+
     // Water
     addWater,
     setWaterGoal(newGoal, interval, start, end) {
-      if (newGoal) state.water.goal = Number(newGoal) || 2500;
+      if (newGoal) state.water.goal = Number(newGoal) || 2000;
       if (interval) state.water.reminderInterval = Number(interval) || 90;
       if (start) state.water.reminderStart = start;
       if (end) state.water.reminderEnd = end;
@@ -1719,7 +1863,9 @@
       showToast('Параметры гидратации обновлены');
     },
 
-    // Weight & Metrics
+    // Profile Height, Weight & BMI Engine
+    setProfileHeight,
+    calculateWeightMetrics,
     logWeight(date, weight) {
       const w = parseFloat(weight);
       if (!w || isNaN(w)) return;
@@ -1732,11 +1878,18 @@
     },
 
     setWeightTarget(target) {
-      state.weight.target = parseFloat(target) || 70;
+      if (target === null || target === undefined || target === '') {
+        state.weight.target = null;
+      } else {
+        const tw = parseFloat(target);
+        state.weight.target = isNaN(tw) || tw <= 0 ? null : tw;
+      }
       saveState();
       renderWeightSection();
       closeAllModals();
-      showToast(`Целевой вес ${state.weight.target} кг установлен`);
+      if (state.weight.target != null) {
+        showToast(`Целевой вес ${state.weight.target} кг установлен`);
+      }
     },
 
     addMeasurement(chest, waist, hips, biceps, neck) {
@@ -1986,7 +2139,13 @@
       if (container) {
         const items = state.media.catalog.filter(i => state.media.watchlist.includes(i.id));
         if (items.length === 0) {
-          container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:16px;">Список пуст. Выбирайте произведения в рандомайзере.</p>';
+          container.innerHTML = `
+            <div class="empty-history-state" style="text-align:center; padding:28px 16px;">
+              <div style="font-weight:600; font-size:0.95rem; color:var(--text-primary); margin-bottom:4px;">Список «Буду смотреть» пуст</div>
+              <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:14px;">Подбирайте произведения в рандомайзере или добавляйте из общего каталога.</div>
+              <button type="button" class="btn btn-sm btn-primary" onclick="window.PulseFlow.closeAllModals(); window.PulseFlow.spinRoulette();">Подобрать случайное</button>
+            </div>
+          `;
         } else {
           container.innerHTML = items.map(it => `
             <div class="watchlist-item">
